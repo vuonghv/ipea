@@ -57,7 +57,7 @@ int ipea_encrypt_mac(struct sk_buff *skb,
     int ret = -EFAULT;
 
     /* Nead more tail room to add data */
-    __u16 expand = sizeof(struct ipea_hdr) + pad + IPEA_MAC_SIZE;
+    u16 expand = sizeof(struct ipea_hdr) + pad + IPEA_MAC_SIZE;
     if (expand > skb_tailroom(skb)) {
         ret = pskb_expand_head(skb, 0, expand, GFP_KERNEL);
         printk("Expanded the tailrom\n");
@@ -132,8 +132,8 @@ int ipea_encrypt_mac(struct sk_buff *skb,
      * and set this fields to 0
      * Finally, compute HMAC on whole IP packet
      */
-    __u8 ttl = iph->ttl;
-    __u8 tos = iph->tos;
+    u8 ttl = iph->ttl;
+    u8 tos = iph->tos;
     __sum16 csum = iph->check;
     
     iph->ttl = 0;
@@ -178,8 +178,8 @@ bool ipea_valid(struct sk_buff *skb, const struct ipea_key *ipeakey)
     }
 
     /* Backup modified fields */
-    __u8 ttl = iph->ttl;
-    __u8 tos = iph->tos;
+    u8 ttl = iph->ttl;
+    u8 tos = iph->tos;
     __sum16 check = iph->check;
 
     iph->ttl = 0;

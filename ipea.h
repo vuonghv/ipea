@@ -54,9 +54,9 @@ struct ipea_key {
 };
 
 struct ipea_hdr {
-    __u8 enc_alg; /* Encryption algorithm used */
-    __u8 mode;
-    __u8 protocol; /* saved the protocol field of IP header */
+    u8 enc_alg; /* Encryption algorithm used */
+    u8 mode;
+    u8 protocol; /* saved the protocol field of IP header */
 };
 
 /* Encrypt the IP-packet's payload by using AES-CBC
