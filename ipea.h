@@ -64,7 +64,8 @@ struct ipea_hdr {
  * exclude TTL, DSCP, Header Checksum
  */
 int ipea_encrypt_mac(struct sk_buff *skb,
-        const struct ipea_hdr *ea_hdr, const struct ipea_key *ipkey);
+                     const struct ipea_hdr *ea_hdr,
+                     const struct ipea_key *ipkey);
 
 /* Verify the IP-packet
  * return true if the packet is valid, otherwise false

@@ -18,6 +18,8 @@
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
 #include <net/ip.h> /* ip_send_check, ip_rcv ...*/
+#include <linux/moduleparam.h>
+#include <linux/string.h>
 #include "utility.h"
 #include "ipea.h"
 
@@ -26,9 +28,31 @@ static struct ipea_hdr ipeah;
 static struct nf_hook_ops post_rout_ops;    /* NF_IP_LOCAL_OUT */
 static struct nf_hook_ops pre_rout_ops;   /* NF_IP_PRE_ROUTING */
 
+static u8 src_addr[4] = {127, 0, 0, 1};  /* source ip address */
+static u8 dst_addr[4] = {127, 0, 0, 1};  /* destination ip address */
+static u8 enc_key[IPEA_ENC_MAX_KEYSIZE];    /* encryption key */
+static u8 iv[AES_BLOCK_SIZE];   /* initial vector */
+static u8 hmac_key[IPEA_HMAC_MAX_KEYSIZE];
+
+module_param_array(src_addr, byte, NULL, 0000);
+MODULE_PARM_DESC(src_addr, "source IP address");
+
+module_param_array(dst_addr, byte, NULL, 0000);
+MODULE_PARM_DESC(dst_addr, "destination IP address");
+
+module_param_string(enc_key, enc_key, IPEA_ENC_MAX_KEYSIZE, 0000);
+MODULE_PARM_DESC(enc_key, "private encryption key");
+
+module_param_string(iv, iv, AES_BLOCK_SIZE, 0000);
+MODULE_PARM_DESC(iv, "initial vector");
+
+module_param_string(hmac_key, hmac_key, IPEA_HMAC_MAX_KEYSIZE, 0000);
+MODULE_PARM_DESC(hmac_key, "hmac key");
+
 /* Get random values for ipea_key */
 static void init_ipea_key(struct ipea_key *ipkey,
-        size_t ekeylen, size_t hkeylen)
+                          size_t ekeylen,
+                          size_t hkeylen)
 {
     ipkey->ekeylen = (ekeylen > IPEA_ENC_MAX_KEYSIZE ?
                             IPEA_ENC_MAX_KEYSIZE : ekeylen);
@@ -41,7 +65,8 @@ static void init_ipea_key(struct ipea_key *ipkey,
 }
 
 int ipea_encrypt_mac(struct sk_buff *skb,
-        const struct ipea_hdr *ipeah, const struct ipea_key *ipeakey)
+                     const struct ipea_hdr *ipeah,
+                     const struct ipea_key *ipeakey)
 {
     /* currently, only protocol only supports encryption and integrity
      * on linear buffer socket buffer
@@ -324,8 +349,11 @@ static int __init ipea_module_init(void)
     ipeah.mode = CBC;
     ipeah.protocol = 0;
 
-    /* Init IPEA key */
-    init_ipea_key(&ipeakey, AES_128_KEYSIZE, HMAC_KEY_SIZE);
+    /* Set up IPEA key */
+    ipeakey.ekeylen = AES_128_KEYSIZE;
+    ipeakey.hkeylen = HMAC_KEY_SIZE;
+    memcpy(ipeakey.ekey, enc_key, IPEA_ENC_MAX_KEYSIZE);
+    memcpy(ipeakey.hkey, hmac_key, IPEA_HMAC_MAX_KEYSIZE);
 
     post_rout_ops.hook = ipea_out_hook;
     post_rout_ops.pf = PF_INET;
