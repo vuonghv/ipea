@@ -303,7 +303,7 @@ static unsigned int ipea_out_hook(unsigned int hooknum,
         return NF_ACCEPT;
 
     struct iphdr *iph = ip_hdr(skb);
-    if (iph->daddr == dst_addr) {
+    if (iph->daddr == *(__be32 *)dst_addr) {
         ipea_encrypt_mac(skb, &ipeah, &ipeakey);
     }
 
