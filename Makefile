@@ -1,19 +1,19 @@
 ccflags-y := -std=gnu99 -Wno-declaration-after-statement -g -D__DEBUG
 
-obj-m += ipea_module.o
+obj-m := ipea_module.o
 ipea_module-objs := ipea.o utility.o
 
+# The directory where the kernel source is located.
+KDIR := /lib/modules/`uname -r`/build
+
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	make -C $(KDIR) M=$(PWD) modules
+
+install:
+	make -C $(KDIR) M=$(PWD) modules_install
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	make -C $(KDIR) M=$(PWD) clean
  
 help:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) help 
-
-%.in: %.ko
-	sudo insmod $<
-
-%.rm: %.ko
-	sudo rmmod $<
+	make -C $(KDIR) M=$(PWD) help 
